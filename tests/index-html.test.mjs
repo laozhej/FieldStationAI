@@ -63,31 +63,6 @@ function functionSource(name) {
     return next === -1 ? rest : rest.slice(0, next);
 }
 
-test('attachment copy failure points to the available download action', async () => {
-    const navigator = { clipboard: { async writeText() { throw new Error('Clipboard denied'); } } };
-    const copyStatus = { classList: { toggle() {} } };
-    const buttons = new Map();
-    const document = {
-        createElement() {
-            return {
-                appendChild() {},
-                setAttribute() {},
-                addEventListener(_, handler) { buttons.set(this.title, handler); }
-            };
-        }
-    };
-    const buildAttachmentPill = Function(
-        'document', 'navigator', 'copyStatus', 'ICONS', 'mimeToIcon', 'formatBytes',
-        functionSource('skillLog') + '\n' + functionSource('copyTextWithFeedback') + '\n' +
-            functionSource('buildAttachmentPill') + '\nreturn buildAttachmentPill;'
-    )(document, navigator, copyStatus, {}, () => '', () => '');
-
-    buildAttachmentPill({ kind: 'document', name: 'notes.txt', derivedText: 'Sample', noOriginal: true });
-    assert.ok(buttons.has('Download extracted text'));
-    await buttons.get('Copy extracted text')();
-    assert.equal(copyStatus.textContent, 'Could not copy. Use Download extracted text.');
-});
-
 // ### File Header ###
 
 test('index.html opens with the project and license header', () => {
@@ -347,6 +322,33 @@ test('items in the Sources row can shrink and break, and the row has no scrollba
     assert.ok(row, 'index.html has no rule for the Sources row');
     assert.ok(/flex-wrap:\s*wrap\b/.test(row[1]), 'items wrap onto new lines');
     assert.ok(!/overflow|max-height|white-space:\s*nowrap/.test(row[1]), 'the row grows taller and never scrolls');
+});
+
+// ### Clipboard Feedback ###
+
+test('attachment copy failure points to the available download action', async () => {
+    const navigator = { clipboard: { async writeText() { throw new Error('Clipboard denied'); } } };
+    const copyStatus = { classList: { toggle() {} } };
+    const buttons = new Map();
+    const document = {
+        createElement() {
+            return {
+                appendChild() {},
+                setAttribute() {},
+                addEventListener(_, handler) { buttons.set(this.title, handler); }
+            };
+        }
+    };
+    const buildAttachmentPill = Function(
+        'document', 'navigator', 'copyStatus', 'ICONS', 'mimeToIcon', 'formatBytes',
+        functionSource('skillLog') + '\n' + functionSource('copyTextWithFeedback') + '\n' +
+            functionSource('buildAttachmentPill') + '\nreturn buildAttachmentPill;'
+    )(document, navigator, copyStatus, {}, () => '', () => '');
+
+    buildAttachmentPill({ kind: 'document', name: 'notes.txt', derivedText: 'Sample', noOriginal: true });
+    assert.ok(buttons.has('Download extracted text'));
+    await buttons.get('Copy extracted text')();
+    assert.equal(copyStatus.textContent, 'Could not copy. Use Download extracted text.');
 });
 
 // ### Pain Estimate ###
