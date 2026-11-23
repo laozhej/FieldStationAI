@@ -3492,20 +3492,13 @@ with this program. If not, see https://www.gnu.org/licenses/.
             if (localStorage.getItem(WELCOME_SEEN_KEY)) return Promise.resolve();
             return showWelcome();
         }
-        // Model loads kicked off at startup can finish while the welcome modal is
-        // still open (its display no longer blocks the boot sequence); skip stealing
-        // focus from its CTA in that case.
-        function focusInputUnlessWelcoming() {
-            if (!welcomeModal.classList.contains('open')) focusPromptWhenFree();
-        }
-
         // Moves focus to the prompt box when the app, not the person, wants
         // it there, such as at the end of a reply. Focus is left alone while
         // a name is being edited or a dialog is open, so that typing is not
         // cut short and focus does not leave a dialog.
         function focusPromptWhenFree() {
             if (inlineRename || itemMenuState) return;
-            if (document.querySelector('#settings-modal.open, #storage-modal.open, #pin-modal.open')) return;
+            if (document.querySelector('#welcome-modal.open, #settings-modal.open, #storage-modal.open, #pin-modal.open')) return;
             input.focus();
         }
 
@@ -5356,7 +5349,7 @@ with this program. If not, see https://www.gnu.org/licenses/.
                 runningOnCpu = false; // Ollama is a real network LLM, never the CPU fallback
                 setStatus('');
                 setControls(true);
-                focusInputUnlessWelcoming();
+                focusPromptWhenFree();
                 return;
             }
 
@@ -5381,11 +5374,11 @@ with this program. If not, see https://www.gnu.org/licenses/.
                     hideProgress();
                     setStatus(`Could not load ${friendlyVisionName(targetVisionId)}: ${errMsg(e)}`, true);
                     setControls(true);
-                    focusInputUnlessWelcoming();
+                    focusPromptWhenFree();
                     return;
                 }
                 setControls(true);
-                focusInputUnlessWelcoming();
+                focusPromptWhenFree();
                 return;
             }
 
@@ -5474,7 +5467,7 @@ with this program. If not, see https://www.gnu.org/licenses/.
                         hideProgress();
                         setStatus('');
                         setControls(true);
-                        focusInputUnlessWelcoming();
+                        focusPromptWhenFree();
                         return;
                     } catch (e) {
                         if (stale()) return;
@@ -5549,7 +5542,7 @@ with this program. If not, see https://www.gnu.org/licenses/.
                     hideProgress();
                     setStatus('');
                     setControls(true);
-                    focusInputUnlessWelcoming();
+                    focusPromptWhenFree();
                     return;
                 } catch (e) {
                     if (stale()) return;
@@ -5597,7 +5590,7 @@ with this program. If not, see https://www.gnu.org/licenses/.
                         hideProgress();
                         setStatus('');
                         setControls(true);
-                        focusInputUnlessWelcoming();
+                        focusPromptWhenFree();
                         return;
                     } catch (e) {
                         if (stale()) return;
@@ -5612,7 +5605,7 @@ with this program. If not, see https://www.gnu.org/licenses/.
             hideProgress();
             setStatus(`Could not load ${shortName}: ${lastErr}. Pick another model from the list.`, true);
             setControls(true);
-            focusInputUnlessWelcoming();
+            focusPromptWhenFree();
         }
 
         // Strip Jinja extensions that minijinja (Transformers.js's Rust-based Jinja engine) can't parse.

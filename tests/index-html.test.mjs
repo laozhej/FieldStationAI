@@ -83,6 +83,27 @@ function functionSource(name) {
     return next === -1 ? rest : rest.slice(0, next);
 }
 
+test('automatic composer focus leaves the welcome window focused', () => {
+    let welcomeOpen = true;
+    let focusCalls = 0;
+    const document = {
+        querySelector(selectors) {
+            return welcomeOpen && selectors.split(', ').includes('#welcome-modal.open');
+        }
+    };
+    const input = { focus: () => { focusCalls++; } };
+    const focusPromptWhenFree = Function(
+        'document', 'input', 'inlineRename', 'itemMenuState',
+        functionSource('focusPromptWhenFree') + '\nreturn focusPromptWhenFree;'
+    )(document, input, false, false);
+
+    focusPromptWhenFree();
+    assert.equal(focusCalls, 0);
+    welcomeOpen = false;
+    focusPromptWhenFree();
+    assert.equal(focusCalls, 1);
+});
+
 // ### File Header ###
 
 test('index.html opens with the project and license header', () => {
