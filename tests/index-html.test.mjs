@@ -63,6 +63,31 @@ function functionSource(name) {
     return next === -1 ? rest : rest.slice(0, next);
 }
 
+test('attachment copy failure points to the available download action', async () => {
+    const navigator = { clipboard: { async writeText() { throw new Error('Clipboard denied'); } } };
+    const copyStatus = { classList: { toggle() {} } };
+    const buttons = new Map();
+    const document = {
+        createElement() {
+            return {
+                appendChild() {},
+                setAttribute() {},
+                addEventListener(_, handler) { buttons.set(this.title, handler); }
+            };
+        }
+    };
+    const buildAttachmentPill = Function(
+        'document', 'navigator', 'copyStatus', 'ICONS', 'mimeToIcon', 'formatBytes',
+        functionSource('skillLog') + '\n' + functionSource('copyTextWithFeedback') + '\n' +
+            functionSource('buildAttachmentPill') + '\nreturn buildAttachmentPill;'
+    )(document, navigator, copyStatus, {}, () => '', () => '');
+
+    buildAttachmentPill({ kind: 'document', name: 'notes.txt', derivedText: 'Sample', noOriginal: true });
+    assert.ok(buttons.has('Download extracted text'));
+    await buttons.get('Copy extracted text')();
+    assert.equal(copyStatus.textContent, 'Could not copy. Use Download extracted text.');
+});
+
 // ### File Header ###
 
 test('index.html opens with the project and license header', () => {

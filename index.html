@@ -4479,13 +4479,13 @@ with this program. If not, see https://www.gnu.org/licenses/.
         }
 
         /** Copy text and report the result without replacing the model's status. */
-        async function copyTextWithFeedback(text) {
+        async function copyTextWithFeedback(text, failureHelp = 'Select the text and copy it manually.') {
             copyStatus.textContent = '';
             try {
                 await navigator.clipboard.writeText(text);
                 skillLog(copyStatus, 'Copied to clipboard.');
             } catch {
-                skillLog(copyStatus, 'Could not copy. Select the text and copy it manually.', true);
+                skillLog(copyStatus, `Could not copy. ${failureHelp}`, true);
             }
         }
 
@@ -6432,7 +6432,7 @@ with this program. If not, see https://www.gnu.org/licenses/.
             actions.className = 'att-actions';
 
             actions.appendChild(mk('copy', 'Copy extracted text', () =>
-                copyTextWithFeedback(att.derivedText || ''), !hasText));
+                copyTextWithFeedback(att.derivedText || '', 'Use Download extracted text.'), !hasText));
 
             // Skill-produced attachments (e.g. the Transcribe skill's output)
             // have no original file - the "original" IS the extracted text,
